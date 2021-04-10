@@ -17,24 +17,52 @@
     </properties>
 
     <dependencies>
-
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.27.0-GA</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.47</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <!-- 注册premain的class -->
-                            <Premain-Class>xyz.dsvshx.peony.agent.PeonyAgent</Premain-Class>
-                            <!-- 注册agentmain的class -->
-                            <Agent-Class>xyz.dsvshx.peony.agent.PeonyAgent</Agent-Class>
-                            <Can-Retransform-Classes>true</Can-Retransform-Classes>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifestEntries>
+                                    <!-- 注册premain的class -->
+                                    <Premain-Class>xyz.dsvshx.peony.agent.PeonyAgent</Premain-Class>
+                                    <!-- 注册agentmain的class -->
+                                    <Agent-Class>xyz.dsvshx.peony.agent.PeonyAgent</Agent-Class>
+                                    <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                                    <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                                    <Specification-Title>${project.name}</Specification-Title>
+                                    <Specification-Version>${project.version}</Specification-Version>
+                                    <Implementation-Title>${project.name}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Main-Class>dsvshx.hotreloadtest.Main</Main-Class>
+                                    <Boot-Class-Path>javassist-3.27.0-GA.jar</Boot-Class-Path>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
