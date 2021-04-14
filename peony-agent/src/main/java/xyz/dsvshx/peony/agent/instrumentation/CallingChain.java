@@ -1,5 +1,6 @@
-package xyz.dsvshx.peony;
+package xyz.dsvshx.peony.agent.instrumentation;
 
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -7,6 +8,7 @@ import lombok.Data;
  * Created on 2021-04-10
  */
 @Data
+@Builder
 public class CallingChain {
     // 唯一ID
     private String transactionId;
@@ -27,5 +29,9 @@ public class CallingChain {
 
     public Long getCntMs() {
         return finishTime >= startTime ? finishTime - startTime : null;
+    }
+
+    public static String getMethodId(String className, String methodName) {
+        return className+methodName;
     }
 }
