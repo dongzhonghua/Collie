@@ -9,16 +9,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>peony-agent</artifactId>
+    <artifactId>peony-core</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
 
-    <dependencies>
-
-    </dependencies>
     <build>
         <plugins>
             <plugin>
@@ -34,21 +31,6 @@
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
-                            <archive>
-                                <manifestEntries>
-                                    <!-- 注册premain的class -->
-                                    <Premain-Class>xyz.dsvshx.peony.agent.PeonyAgent</Premain-Class>
-                                    <!-- 注册agentmain的class -->
-                                    <Agent-Class>xyz.dsvshx.peony.agent.PeonyAgent</Agent-Class>
-                                    <Can-Redefine-Classes>true</Can-Redefine-Classes>
-                                    <Can-Retransform-Classes>true</Can-Retransform-Classes>
-                                    <Specification-Title>${project.name}</Specification-Title>
-                                    <Specification-Version>${project.version}</Specification-Version>
-                                    <Implementation-Title>${project.name}</Implementation-Title>
-                                    <Implementation-Version>${project.version}</Implementation-Version>
-                                    <Boot-Class-Path>javassist-3.27.0-GA.jar</Boot-Class-Path>
-                                </manifestEntries>
-                            </archive>
                         </configuration>
                     </execution>
                 </executions>

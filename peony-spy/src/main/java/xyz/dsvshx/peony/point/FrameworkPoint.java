@@ -1,4 +1,4 @@
-package xyz.dsvshx.peony.agent.instrumentation;
+package xyz.dsvshx.peony.point;
 
 import java.util.Arrays;
 
@@ -6,7 +6,7 @@ import java.util.Arrays;
  * @author dongzhonghua
  * Created on 2021-04-11
  */
-public class Point {
+public class FrameworkPoint {
     public static void point(String methodId, Object[] params, long startTime, long endTime, Object result) {
         try {
             if (result == null) {

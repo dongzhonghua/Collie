@@ -1,4 +1,4 @@
-package xyz.dsvshx.peony.agent.instrumentation;
+package xyz.dsvshx.peony.instrumentation;
 
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +14,10 @@ public class CallingChain {
     private String transactionId;
     private String className;
     private String methodName;
+    /**
+     * http rpc redis等
+     */
+    private String event;
     private String descriptor;
     private Object[] params;
     private Throwable throwable;
@@ -32,6 +36,6 @@ public class CallingChain {
     }
 
     public static String getMethodId(String className, String methodName) {
-        return className+methodName;
+        return className + methodName;
     }
 }

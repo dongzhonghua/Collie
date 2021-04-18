@@ -11,6 +11,8 @@
     <modules>
         <module>peony-agent</module>
         <module>peony-test</module>
+        <module>peony-core</module>
+        <module>peony-spy</module>
     </modules>
 
     <properties>
