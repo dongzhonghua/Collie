@@ -1,15 +1,10 @@
-package xyz.dsvshx.peony.instrumentation;
-
-import lombok.Builder;
-import lombok.Data;
+package xyz.dsvshx.peony.core.model;
 
 /**
  * @author dongzhonghua
- * Created on 2021-04-10
+ * Created on 2021-04-20
  */
-@Data
-@Builder
-public class CallingChain {
+public class CallRecord {
     // 唯一ID
     private String transactionId;
     private String className;
@@ -19,17 +14,14 @@ public class CallingChain {
      */
     private String event;
     private String descriptor;
-    private Object[] params;
+    private String params;
+    private Object[] paramList;
     private Throwable throwable;
-    private Object returnValue;
+    private Object result;
 
     private long startTime;
     private long finishTime;
-
     private Long cntMs;
-
-    private CallingChain next;
-    private CallingChain pre;
 
     public Long getCntMs() {
         return finishTime >= startTime ? finishTime - startTime : null;

@@ -1,4 +1,4 @@
-package xyz.dsvshx.peony.instrumentation;
+package xyz.dsvshx.peony.core.instrumentation;
 
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
@@ -12,6 +12,7 @@ import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
+import xyz.dsvshx.peony.core.model.CallRecord;
 
 /**
  * @author dongzhonghua
@@ -51,7 +52,7 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
             CtClass ctClass = classPool.get(className.replace("/", "."));
             // 所有函数和构造函数
             for (CtBehavior ctBehavior : ctClass.getDeclaredBehaviors()) {
-                String methodId = CallingChain.getMethodId(className, ctBehavior.getName());
+                String methodId = CallRecord.getMethodId(className, ctBehavior.getName());
 
                 CodeAttribute codeAttribute = ctBehavior.getMethodInfo().getCodeAttribute();
                 // 获取方法的入参的名称
