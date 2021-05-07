@@ -6,10 +6,6 @@ package xyz.dsvshx.peony.core.aspect;
  */
 public class MethodCallLisener {
 
-
-
-
-
     public void before(String className, String methodName, String descriptor, Object[] params) {
 
     }
