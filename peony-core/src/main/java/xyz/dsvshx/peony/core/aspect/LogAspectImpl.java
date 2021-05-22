@@ -16,7 +16,7 @@ public class LogAspectImpl implements Aspect {
     }
 
     @Override
-    public void complete(String className, String methodName, String descriptor, Object returnValueOrThrowable) {
+    public void after(String className, String methodName, String descriptor, Object returnValueOrThrowable) {
 
     }
 }

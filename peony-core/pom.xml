@@ -10,6 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>peony-core</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>xyz.dsvshx</groupId>
+            <artifactId>peony-spy</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

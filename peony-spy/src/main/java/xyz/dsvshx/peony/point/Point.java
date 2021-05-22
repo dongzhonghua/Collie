@@ -12,6 +12,7 @@ import java.util.Arrays;
  */
 public class Point {
 
+    // 这两个在什么时候赋值呢？
     public static Method beforeMethod;
     public static Method completeMethod;
 

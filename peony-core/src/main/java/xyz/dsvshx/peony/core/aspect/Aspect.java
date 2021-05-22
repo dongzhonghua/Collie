@@ -17,5 +17,5 @@ public interface Aspect {
      */
     void error(String className, String methodName, String descriptor, Throwable throwable);
 
-    void complete(String className, String methodName, String descriptor, Object result);
+    void after(String className, String methodName, String descriptor, Object result);
 }

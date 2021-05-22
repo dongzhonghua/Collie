@@ -28,6 +28,8 @@ public class PeonyAgent {
             log.info(">>>>>>>进入premain，agent参数：{}", agentOps);
             AgentConfigHolder.holdConfig(agentOps);
 
+            // FIXME: 2021/5/22 添加两个jar包实在是太丑陋了
+            // 使用启动类加载器load spy
             String agentSpyPath = AgentConfigHolder.getAgentSpyPath();
             File agentSpyFile = new File(agentSpyPath);
             if (!agentSpyFile.exists()) {
@@ -36,15 +38,19 @@ public class PeonyAgent {
             }
             instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(agentSpyFile));
 
+            // load core
             File agentCoreFile = new File(AgentConfigHolder.getAgentCorePath());
             if (!agentCoreFile.exists()) {
                 System.out.println("Agent jar file does not exist: " + agentCoreFile);
                 return;
             }
 
+            // 使用自定义的类加载器加载core包
             PeonyClassLoader peonyClassLoader = new PeonyClassLoader(new URL[] {agentCoreFile.toURI().toURL()});
+
+            // addTransformer
             Class<?> peonyClassFileTransformer =
-                    peonyClassLoader.loadClass("xyz.dsvshx.peony.instrumentation.PeonyClassFileTransformer");
+                    peonyClassLoader.loadClass("xyz.dsvshx.peony.core.instrumentation.PeonyClassFileTransformer");
             Constructor<?> declaredConstructor = peonyClassFileTransformer.getDeclaredConstructor(String.class);
 
             instrumentation.addTransformer((ClassFileTransformer) declaredConstructor.newInstance(agentSpyPath));
@@ -57,6 +63,7 @@ public class PeonyAgent {
     }
 
     private static void processJvmInfo() {
+        // TODO: 2021/5/22 如何关闭？
         Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
             Metric.printMemoryInfo();
             Metric.printGCInfo();
