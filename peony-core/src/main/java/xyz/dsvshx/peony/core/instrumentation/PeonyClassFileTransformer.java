@@ -2,7 +2,6 @@ package xyz.dsvshx.peony.core.instrumentation;
 
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
-import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 
 import javassist.CannotCompileException;
@@ -38,7 +37,7 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-            ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+            ProtectionDomain protectionDomain, byte[] classfileBuffer) {
         // 一定要排除
         if (className.startsWith("sun/") || className.startsWith("java/") || className.startsWith("jdk/")
                 || className.startsWith("javax/")) {
@@ -71,37 +70,48 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
             classPool.appendClassPath(spyJarPath);
             String clazzname = className.replace("/", ".");
             CtClass ctClass = classPool.get(clazzname);
-            // 所有函数和构造函数
-            for (CtBehavior ctBehavior : ctClass.getDeclaredBehaviors()) {
-                // 方法前加强
-                // before(String className, String methodName, String descriptor, Object[] params)
-                // 如果是基本数据类型的话，传参为Object是不对的，需要转成封装类型
-                // 转成封装类型的话非常方便，使用$w就可以，还是牛逼啊，而且也不影响其他的Object类型
-                ctBehavior.insertBefore(
-                        String.format("{xyz.dsvshx.peony.point.Point.before(\"%s\", \"%s\", \"%s\", %s);}",
-                                clazzname, ctBehavior.getName(), "还不知道传什么", "($w)$args")
-                );
-                // 打点加到最后
-                // complete(String className, String methodName, String descriptor, Object returnValueOrThrowable)
-                ctBehavior.insertAfter(
-                        String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);}",
-                                clazzname, ctBehavior.getName(), "还不知道传什么", "($w)$_")
-                );
-                // 捕获异常
-                ctBehavior.addCatch(
-                        String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);"
-                                        + "throw $e;}",
-                                clazzname, ctBehavior.getName(), "还不知道传什么", "$e"),
-                        ClassPool.getDefault().get("java.lang.Throwable")
-                );
+
+            // 所有函数
+            for (CtBehavior ctBehavior : ctClass.getDeclaredMethods()) {
+                addMethodAspect(clazzname, ctBehavior, false);
+            }
+            // 所有构造函数
+            for (CtBehavior ctBehavior : ctClass.getDeclaredConstructors()) {
+                addMethodAspect(clazzname, ctBehavior, true);
             }
             ctClass.writeFile(
-                    "/Users/dongzhonghua03/Documents/github/peony/peony-core/src/main/java/xyz/dsvshx/peony/core/instrumentation");
+                    "/Users/dongzhonghua03/Documents/github/peony/peony-core/src/main/java/xyz/dsvshx/peony/core"
+                            + "/instrumentation");
             return ctClass.toBytecode();
-        } catch (NotFoundException | CannotCompileException | IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return classfileBuffer;
         }
+    }
+
+    private void addMethodAspect(String clazzname, CtBehavior ctBehavior, boolean isConstructor) throws Exception {
+        // 方法前加强
+        // before(String className, String methodName, String descriptor, Object[] params)
+        // 如果是基本数据类型的话，传参为Object是不对的，需要转成封装类型
+        // 转成封装类型的话非常方便，使用$w就可以，还是牛逼啊，而且也不影响其他的Object类型
+        String methodName = isConstructor ? ctBehavior.getName() + "#" : ctBehavior.getName();
+        ctBehavior.insertBefore(
+                String.format("{xyz.dsvshx.peony.point.Point.before(\"%s\", \"%s\", \"%s\", %s);}",
+                        clazzname, methodName, "还不知道传什么", "($w)$args")
+        );
+        // 打点加到最后
+        // complete(String className, String methodName, String descriptor, Object returnValueOrThrowable)
+        ctBehavior.insertAfter(
+                String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);}",
+                        clazzname, methodName, "还不知道传什么", "($w)$_")
+        );
+        // 捕获异常
+        ctBehavior.addCatch(
+                String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);"
+                                + "throw $e;}",
+                        clazzname, methodName, "还不知道传什么", "$e"),
+                ClassPool.getDefault().get("java.lang.Throwable")
+        );
     }
 
     @Deprecated
