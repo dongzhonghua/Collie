@@ -40,7 +40,8 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         // 一定要排除
-        if (className.startsWith("sun/") || className.startsWith("java/") || className.startsWith("jdk/")) {
+        if (className.startsWith("sun/") || className.startsWith("java/") || className.startsWith("jdk/")
+                || className.startsWith("javax/")) {
             return classfileBuffer;
         }
         // 把自己排除掉
@@ -51,6 +52,11 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
         if (className.contains("CGLIB") || className.contains("intellij") || className.contains("jetbrains")) {
             return classfileBuffer;
         }
+        //
+        if (className.contains("com/alibaba/fastjson")) {
+            return classfileBuffer;
+        }
+
         // 适配一些第三方框架
         // TODO: 2021/4/14  
 
@@ -69,15 +75,17 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
             for (CtBehavior ctBehavior : ctClass.getDeclaredBehaviors()) {
                 // 方法前加强
                 // before(String className, String methodName, String descriptor, Object[] params)
+                // 如果是基本数据类型的话，传参为Object是不对的，需要转成封装类型
+                // 转成封装类型的话非常方便，使用$w就可以，还是牛逼啊，而且也不影响其他的Object类型
                 ctBehavior.insertBefore(
                         String.format("{xyz.dsvshx.peony.point.Point.before(\"%s\", \"%s\", \"%s\", %s);}",
-                                clazzname, ctBehavior.getName(), "还不知道传什么", "$args")
+                                clazzname, ctBehavior.getName(), "还不知道传什么", "($w)$args")
                 );
                 // 打点加到最后
                 // complete(String className, String methodName, String descriptor, Object returnValueOrThrowable)
                 ctBehavior.insertAfter(
                         String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);}",
-                                clazzname, ctBehavior.getName(), "还不知道传什么", "$_")
+                                clazzname, ctBehavior.getName(), "还不知道传什么", "($w)$_")
                 );
                 // 捕获异常
                 ctBehavior.addCatch(
@@ -87,8 +95,8 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
                         ClassPool.getDefault().get("java.lang.Throwable")
                 );
             }
-            // ctClass.writeFile(
-            //         "~/Documents/github/peony/peony-core/src/main/java/xyz/dsvshx/peony/core/instrumentation");
+            ctClass.writeFile(
+                    "/Users/dongzhonghua03/Documents/github/peony/peony-core/src/main/java/xyz/dsvshx/peony/core/instrumentation");
             return ctClass.toBytecode();
         } catch (NotFoundException | CannotCompileException | IOException e) {
             e.printStackTrace();

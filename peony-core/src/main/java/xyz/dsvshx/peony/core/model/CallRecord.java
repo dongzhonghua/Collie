@@ -1,12 +1,16 @@
 package xyz.dsvshx.peony.core.model;
 
+import lombok.Data;
+
 /**
  * @author dongzhonghua
  * Created on 2021-04-20
  */
+@Data
 public class CallRecord {
     // 唯一ID
     private String transactionId;
+    private String spanId;
     private String className;
     private String methodName;
     /**
