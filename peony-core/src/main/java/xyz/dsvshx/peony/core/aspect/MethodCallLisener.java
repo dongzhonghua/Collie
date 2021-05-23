@@ -2,7 +2,6 @@ package xyz.dsvshx.peony.core.aspect;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceLoader;
 
 import xyz.dsvshx.peony.point.Point;
 
@@ -20,10 +19,9 @@ public class MethodCallLisener {
     public static void init() throws NoSuchMethodException {
         // 获取Aspect所有的实现类
         aspects = new ArrayList<>();
-        ServiceLoader<Aspect> aspectImpls = ServiceLoader.load(Aspect.class);
-        for (Aspect aspect : aspectImpls) {
-            aspects.add(aspect);
-        }
+        // 这种方式可能得结合spi使用，直接用不行
+        // ServiceLoader<Aspect> aspectImpls = ServiceLoader.load(Aspect.class);
+        aspects.add(new LogAspectImpl());
         // 初始化Spy的方法
         Point.beforeMethod = MethodCallLisener.class.getMethod("before", String.class,
                 String.class, String.class, Object[].class);

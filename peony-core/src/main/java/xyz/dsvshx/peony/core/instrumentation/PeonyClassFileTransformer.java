@@ -12,6 +12,7 @@ import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
+import xyz.dsvshx.peony.core.aspect.MethodCallLisener;
 import xyz.dsvshx.peony.core.model.CallRecord;
 
 /**
@@ -24,6 +25,15 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
 
     public PeonyClassFileTransformer(String spyJarPath) {
         this.spyJarPath = spyJarPath;
+        initAspect();
+    }
+
+    private void initAspect() {
+        try {
+            MethodCallLisener.init();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
     }
 
     @Override
@@ -45,6 +55,49 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
         // TODO: 2021/4/14  
 
         System.out.println("className:" + className);
+        return classTransform(className, classfileBuffer);
+    }
+
+    private byte[] classTransform(String className, byte[] classfileBuffer) {
+        try {
+            ClassPool classPool = ClassPool.getDefault();
+            // 必须要有这个，否则会报point找不到，搞了大半天 https://my.oschina.net/xiaominmin/blog/3153685
+            classPool.appendClassPath(spyJarPath);
+            String clazzname = className.replace("/", ".");
+            CtClass ctClass = classPool.get(clazzname);
+            // 所有函数和构造函数
+            for (CtBehavior ctBehavior : ctClass.getDeclaredBehaviors()) {
+                // 方法前加强
+                // before(String className, String methodName, String descriptor, Object[] params)
+                ctBehavior.insertBefore(
+                        String.format("{xyz.dsvshx.peony.point.Point.before(\"%s\", \"%s\", \"%s\", %s);}",
+                                clazzname, ctBehavior.getName(), "还不知道传什么", "$args")
+                );
+                // 打点加到最后
+                // complete(String className, String methodName, String descriptor, Object returnValueOrThrowable)
+                ctBehavior.insertAfter(
+                        String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);}",
+                                clazzname, ctBehavior.getName(), "还不知道传什么", "$_")
+                );
+                // 捕获异常
+                ctBehavior.addCatch(
+                        String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);"
+                                        + "throw $e;}",
+                                clazzname, ctBehavior.getName(), "还不知道传什么", "$e"),
+                        ClassPool.getDefault().get("java.lang.Throwable")
+                );
+            }
+            // ctClass.writeFile(
+            //         "~/Documents/github/peony/peony-core/src/main/java/xyz/dsvshx/peony/core/instrumentation");
+            return ctClass.toBytecode();
+        } catch (NotFoundException | CannotCompileException | IOException e) {
+            e.printStackTrace();
+            return classfileBuffer;
+        }
+    }
+
+    @Deprecated
+    private byte[] transformClass(String className, byte[] classfileBuffer) {
         try {
             ClassPool classPool = ClassPool.getDefault();
             // 必须要有这个，否则会报point找不到，搞了大半天 https://my.oschina.net/xiaominmin/blog/3153685

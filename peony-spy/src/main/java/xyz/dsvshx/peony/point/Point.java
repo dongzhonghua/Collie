@@ -17,7 +17,7 @@ public class Point {
     public static Method completeMethod;
 
     static {
-        System.out.println("Point class loader is " + Point.class.getClassLoader());
+        System.out.println("----------------Point class loader is " + Point.class.getClassLoader());
     }
 
     public static void before(String className, String methodName, String descriptor, Object[] params) {

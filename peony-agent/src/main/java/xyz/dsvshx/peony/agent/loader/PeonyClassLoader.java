@@ -27,6 +27,9 @@ public class PeonyClassLoader extends URLClassLoader {
         }
         try {
             log.info(">>>>>>>>>>>>使用PeonyClassloader加载类：" + name);
+            if (name != null && name.contains("xyz.dsvshx.peony.point")) {
+                return super.loadClass(name, resolve);
+            }
             Class<?> loadedClass = findClass(name);
             if (loadedClass != null) {
                 if (resolve) {
