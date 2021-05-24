@@ -25,16 +25,16 @@ public class PeonyClassLoader extends URLClassLoader {
         if (name != null && (name.startsWith("sun.") || name.startsWith("java."))) {
             return super.loadClass(name, resolve);
         }
+        if (name != null && name.contains("xyz.dsvshx.peony.point")) {
+            return super.loadClass(name, resolve);
+        }
         try {
-            log.info(">>>>>>>>>>>>使用PeonyClassloader加载类：" + name);
-            if (name != null && name.contains("xyz.dsvshx.peony.point")) {
-                return super.loadClass(name, resolve);
-            }
             Class<?> loadedClass = findClass(name);
             if (loadedClass != null) {
                 if (resolve) {
                     resolveClass(loadedClass);
                 }
+                log.info(">>>>>>>>>>>>使用PeonyClassloader加载类：" + name);
                 return loadedClass;
             }
         } catch (ClassNotFoundException ignored) {

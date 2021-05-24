@@ -8,9 +8,11 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtBehavior;
 import javassist.CtClass;
+import javassist.Modifier;
 import javassist.NotFoundException;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
+import lombok.extern.slf4j.Slf4j;
 import xyz.dsvshx.peony.core.aspect.MethodCallLisener;
 import xyz.dsvshx.peony.core.model.CallRecord;
 
@@ -18,6 +20,7 @@ import xyz.dsvshx.peony.core.model.CallRecord;
  * @author dongzhonghua
  * Created on 2021-04-14
  */
+@Slf4j
 public class PeonyClassFileTransformer implements ClassFileTransformer {
 
     private final String spyJarPath;
@@ -39,7 +42,8 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer) {
         // 一定要排除
-        if (className.startsWith("sun/") || className.startsWith("java/") || className.startsWith("jdk/")
+        if (className.startsWith("sun/") || className.startsWith("com/sun/") ||
+                className.startsWith("java/") || className.startsWith("jdk/")
                 || className.startsWith("javax/")) {
             return classfileBuffer;
         }
@@ -51,15 +55,29 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
         if (className.contains("CGLIB") || className.contains("intellij") || className.contains("jetbrains")) {
             return classfileBuffer;
         }
-        //
+        // 实在是太多了，修改哪些包合适呢？一个一个的去掉简直太傻逼了
         if (className.contains("com/alibaba/fastjson")) {
+            return classfileBuffer;
+        }
+        if (className.contains("javassist/")) {
+            return classfileBuffer;
+        }
+        if (className.contains("org/reflections")) {
+            return classfileBuffer;
+        }
+        if (className.contains("org/groovy/debug")) {
             return classfileBuffer;
         }
 
         // 适配一些第三方框架
         // TODO: 2021/4/14  
 
-        System.out.println("className:" + className);
+        // 先暂定为自己的，其他的后面在考虑如何过滤
+        // FIXME: 2021/5/24
+        if (!className.contains("xyz/dsvshx")) {
+            return classfileBuffer;
+        }
+        log.info("transform class name:" + className);
         return classTransform(className, classfileBuffer);
     }
 
@@ -70,18 +88,20 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
             classPool.appendClassPath(spyJarPath);
             String clazzname = className.replace("/", ".");
             CtClass ctClass = classPool.get(clazzname);
-
-            // 所有函数
-            for (CtBehavior ctBehavior : ctClass.getDeclaredMethods()) {
-                addMethodAspect(clazzname, ctBehavior, false);
+            // 排除掉注解，接口，枚举
+            if (!ctClass.isAnnotation() && !ctClass.isInterface() && !ctClass.isEnum()) {
+                // 针对所有函数操作
+                for (CtBehavior ctBehavior : ctClass.getDeclaredMethods()) {
+                    addMethodAspect(clazzname, ctBehavior, false);
+                }
+                // 所有构造函数
+                for (CtBehavior ctBehavior : ctClass.getDeclaredConstructors()) {
+                    addMethodAspect(clazzname, ctBehavior, true);
+                }
+                ctClass.writeFile(
+                        "/Users/dongzhonghua03/Documents/github/peony/peony-core/src/main/java/xyz/dsvshx/peony/core"
+                                + "/instrumentation");
             }
-            // 所有构造函数
-            for (CtBehavior ctBehavior : ctClass.getDeclaredConstructors()) {
-                addMethodAspect(clazzname, ctBehavior, true);
-            }
-            ctClass.writeFile(
-                    "/Users/dongzhonghua03/Documents/github/peony/peony-core/src/main/java/xyz/dsvshx/peony/core"
-                            + "/instrumentation");
             return ctClass.toBytecode();
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,6 +110,9 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
     }
 
     private void addMethodAspect(String clazzname, CtBehavior ctBehavior, boolean isConstructor) throws Exception {
+        if (isNative(ctBehavior) || isAbstract(ctBehavior)) {
+            return;
+        }
         // 方法前加强
         // before(String className, String methodName, String descriptor, Object[] params)
         // 如果是基本数据类型的话，传参为Object是不对的，需要转成封装类型
@@ -112,6 +135,14 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
                         clazzname, methodName, "还不知道传什么", "$e"),
                 ClassPool.getDefault().get("java.lang.Throwable")
         );
+    }
+
+    public static boolean isNative(CtBehavior method) {
+        return Modifier.isNative(method.getModifiers());
+    }
+
+    public static boolean isAbstract(CtBehavior method) {
+        return Modifier.isAbstract(method.getModifiers());
     }
 
     @Deprecated

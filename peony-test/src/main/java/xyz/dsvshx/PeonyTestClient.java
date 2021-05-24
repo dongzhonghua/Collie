@@ -1,5 +1,8 @@
 package xyz.dsvshx;
 
+import xyz.dsvshx.ioc.SummerApplication;
+import xyz.dsvshx.ioc.annotation.Application;
+import xyz.dsvshx.ioc.context.ApplicationContext;
 import xyz.dsvshx.peony.javasist.PeonyInterface;
 
 /**
@@ -9,12 +12,12 @@ import xyz.dsvshx.peony.javasist.PeonyInterface;
  * @author dongzhonghua
  * Created on 2021-04-09
  */
+@Application(basepackage = "xyz.dsvshx")
 public class PeonyTestClient {
 
-    public PeonyTestClient() {
-    }
-
     public static void main(String[] args) throws Exception {
+        ApplicationContext applicationContext = SummerApplication.run(PeonyTestClient.class, args);
+
         System.out.println("main方法启动");
         PeonyTestClient peonyTestClient = new PeonyTestClient();
         System.out.println(peonyTestClient.hello("dongzhonghua", 12));
@@ -26,6 +29,7 @@ public class PeonyTestClient {
             }
         };
         hi.hi();
+
     }
 
     private String hello(String name, int age) throws Exception {
