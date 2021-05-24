@@ -6,7 +6,7 @@ package xyz.dsvshx.peony.core.aspect;
  * @author dongzhonghua
  * Created on 2021-04-20
  */
-public interface Aspect {
+public interface MethodAspect {
     /**
      * 方法执行之前调用，可以实现多个，比如打印日志或者其他的功能。
      */

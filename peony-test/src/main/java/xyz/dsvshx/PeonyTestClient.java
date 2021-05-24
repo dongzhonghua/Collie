@@ -14,11 +14,9 @@ import xyz.dsvshx.peony.javasist.PeonyInterface;
  */
 @Application(basepackage = "xyz.dsvshx")
 public class PeonyTestClient {
-
     public static void main(String[] args) throws Exception {
         ApplicationContext applicationContext = SummerApplication.run(PeonyTestClient.class, args);
 
-        System.out.println("main方法启动");
         PeonyTestClient peonyTestClient = new PeonyTestClient();
         System.out.println(peonyTestClient.hello("dongzhonghua", 12));
         // System.out.println(peonyTestClient.age(20));
@@ -29,7 +27,6 @@ public class PeonyTestClient {
             }
         };
         hi.hi();
-
     }
 
     private String hello(String name, int age) throws Exception {

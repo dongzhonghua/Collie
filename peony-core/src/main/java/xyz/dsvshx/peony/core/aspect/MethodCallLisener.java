@@ -14,14 +14,14 @@ import xyz.dsvshx.peony.point.Point;
  */
 public class MethodCallLisener {
 
-    private static List<Aspect> aspects;
+    private static List<MethodAspect> methodAspects;
 
     public static void init() throws NoSuchMethodException {
         // 获取Aspect所有的实现类
-        aspects = new ArrayList<>();
+        methodAspects = new ArrayList<>();
         // 这种方式可能得结合spi使用，直接用不行
         // ServiceLoader<Aspect> aspectImpls = ServiceLoader.load(Aspect.class);
-        aspects.add(new LogAspectImpl());
+        methodAspects.add(new LogAspectImpl());
         // 初始化Spy的方法
         Point.beforeMethod = MethodCallLisener.class.getMethod("before", String.class,
                 String.class, String.class, Object[].class);
@@ -32,8 +32,8 @@ public class MethodCallLisener {
     public static void before(String className, String methodName, String descriptor, Object[] params) {
         try {
             if (SamplingRate.needSampling()) {
-                for (Aspect aspect : aspects) {
-                    aspect.before(className, methodName, descriptor, params);
+                for (MethodAspect methodAspect : methodAspects) {
+                    methodAspect.before(className, methodName, descriptor, params);
                 }
             }
         } catch (Exception ignored) {
@@ -44,12 +44,12 @@ public class MethodCallLisener {
         try {
             if (SamplingRate.needSampling()) {
                 if (returnValueOrThrowable instanceof Throwable) {
-                    for (Aspect aspect : aspects) {
-                        aspect.error(className, methodName, descriptor, (Throwable) returnValueOrThrowable);
+                    for (MethodAspect methodAspect : methodAspects) {
+                        methodAspect.error(className, methodName, descriptor, (Throwable) returnValueOrThrowable);
                     }
                 } else {
-                    for (Aspect aspect : aspects) {
-                        aspect.after(className, methodName, descriptor, returnValueOrThrowable);
+                    for (MethodAspect methodAspect : methodAspects) {
+                        methodAspect.after(className, methodName, descriptor, returnValueOrThrowable);
                     }
                 }
             }

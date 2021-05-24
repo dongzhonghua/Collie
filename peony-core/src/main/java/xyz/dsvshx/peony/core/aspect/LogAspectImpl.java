@@ -6,7 +6,7 @@ import com.alibaba.fastjson.JSONObject;
  * @author dongzhonghua
  * Created on 2021-04-20
  */
-public class LogAspectImpl implements Aspect {
+public class LogAspectImpl implements MethodAspect, FrameworkAspect {
 
     /**
      * 具体的实现调用链日志的打印
@@ -32,5 +32,16 @@ public class LogAspectImpl implements Aspect {
                         + "className:%s,\nmethodName:%s,\ndescriptor:%s,\nendTime:%d,\ncost:%d,\nreturn:%s\n\n",
                 className, methodName, descriptor, System.currentTimeMillis(), -1,
                 JSONObject.toJSON(returnValueOrThrowable));
+    }
+
+    // 埋入
+    @Override
+    public void entry() {
+
+    }
+
+    @Override
+    public void exit() {
+
     }
 }

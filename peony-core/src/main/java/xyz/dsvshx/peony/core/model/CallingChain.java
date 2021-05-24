@@ -10,9 +10,11 @@ import lombok.Data;
 @Data
 @Builder
 public class CallingChain {
-    private CallRecord callRecord;
+    private String transactionId;
+    private String spanId;
 
-    private CallingChain next;
-    private CallingChain pre;
+    private CallRecord curRecord;
+
+
 
 }

@@ -3,6 +3,10 @@ package xyz.dsvshx.peony.core.instrumentation;
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -13,6 +17,7 @@ import javassist.NotFoundException;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
 import lombok.extern.slf4j.Slf4j;
+import xyz.dsvshx.peony.core.adaptor.FrameworkAdaptor;
 import xyz.dsvshx.peony.core.aspect.MethodCallLisener;
 import xyz.dsvshx.peony.core.model.CallRecord;
 
@@ -24,10 +29,17 @@ import xyz.dsvshx.peony.core.model.CallRecord;
 public class PeonyClassFileTransformer implements ClassFileTransformer {
 
     private final String spyJarPath;
+    private List<FrameworkAdaptor> frameworkAdaptors;
+    private final static ConcurrentMap<String, Object> MODIFY_CLASS_MAP = new ConcurrentHashMap<>();
+
 
     public PeonyClassFileTransformer(String spyJarPath) {
         this.spyJarPath = spyJarPath;
         initAspect();
+        this.frameworkAdaptors = Arrays.asList(
+                // TODO: 2021/5/24
+
+        );
     }
 
     private void initAspect() {
@@ -69,8 +81,13 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
             return classfileBuffer;
         }
 
-        // 适配一些第三方框架
-        // TODO: 2021/4/14  
+        // 适配一些第三方框架, 目前针对summer和dzh-rpc进行支持
+        for (FrameworkAdaptor adaptor : frameworkAdaptors) {
+            byte[] result = adaptor.modifyClass(loader, className, classfileBuffer);
+            if (result != null) {
+                return result;
+            }
+        }
 
         // 先暂定为自己的，其他的后面在考虑如何过滤
         // FIXME: 2021/5/24

@@ -27,6 +27,9 @@ public class CallRecord {
     private long finishTime;
     private Long cntMs;
 
+    private CallRecord pre;
+    private CallRecord next;
+
     public Long getCntMs() {
         return finishTime >= startTime ? finishTime - startTime : null;
     }
