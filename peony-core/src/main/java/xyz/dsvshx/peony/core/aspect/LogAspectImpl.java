@@ -34,10 +34,12 @@ public class LogAspectImpl implements MethodAspect, FrameworkAspect {
                 JSONObject.toJSON(returnValueOrThrowable));
     }
 
-    // 埋入
+    /**
+     * 具体的业务实现，如果要用链表来存储调用链信息的话可以在这里埋入一个ThreadLocal 链表
+     */
     @Override
     public void entry() {
-
+        // TODO: 2021/5/26 如果用链表存储在这里写，不过暂时不用，想去用写到MySQL的方法，至于kafka也可以用，但不必要
     }
 
     @Override

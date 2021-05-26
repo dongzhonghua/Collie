@@ -18,6 +18,7 @@ import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
 import lombok.extern.slf4j.Slf4j;
 import xyz.dsvshx.peony.core.adaptor.FrameworkAdaptor;
+import xyz.dsvshx.peony.core.adaptor.summer.SummerFrameworkAdaptorImpl;
 import xyz.dsvshx.peony.core.aspect.MethodCallLisener;
 import xyz.dsvshx.peony.core.model.CallRecord;
 
@@ -37,8 +38,7 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
         this.spyJarPath = spyJarPath;
         initAspect();
         this.frameworkAdaptors = Arrays.asList(
-                // TODO: 2021/5/24
-
+                new SummerFrameworkAdaptorImpl()
         );
     }
 
@@ -83,7 +83,7 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
 
         // 适配一些第三方框架, 目前针对summer和dzh-rpc进行支持
         for (FrameworkAdaptor adaptor : frameworkAdaptors) {
-            byte[] result = adaptor.modifyClass(loader, className, classfileBuffer);
+            byte[] result = adaptor.modifyClass(loader, className, classfileBuffer, spyJarPath);
             if (result != null) {
                 return result;
             }
@@ -98,6 +98,7 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
         return classTransform(className, classfileBuffer);
     }
 
+    // 这段是不是可以复用？
     private byte[] classTransform(String className, byte[] classfileBuffer) {
         try {
             ClassPool classPool = ClassPool.getDefault();

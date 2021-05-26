@@ -23,9 +23,9 @@ public class MethodCallLisener {
         // ServiceLoader<Aspect> aspectImpls = ServiceLoader.load(Aspect.class);
         methodAspects.add(new LogAspectImpl());
         // 初始化Spy的方法
-        Point.beforeMethod = MethodCallLisener.class.getMethod("before", String.class,
+        Point.BEFORE_METHOD = MethodCallLisener.class.getMethod("before", String.class,
                 String.class, String.class, Object[].class);
-        Point.completeMethod = MethodCallLisener.class.getMethod("complete", String.class,
+        Point.COMPLETE_METHOD = MethodCallLisener.class.getMethod("complete", String.class,
                 String.class, String.class, Object.class);
     }
 

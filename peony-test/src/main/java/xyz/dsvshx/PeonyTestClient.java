@@ -2,6 +2,7 @@ package xyz.dsvshx;
 
 import xyz.dsvshx.ioc.SummerApplication;
 import xyz.dsvshx.ioc.annotation.Application;
+import xyz.dsvshx.ioc.annotation.mvc.WebApplication;
 import xyz.dsvshx.ioc.context.ApplicationContext;
 import xyz.dsvshx.peony.javasist.PeonyInterface;
 
@@ -12,6 +13,7 @@ import xyz.dsvshx.peony.javasist.PeonyInterface;
  * @author dongzhonghua
  * Created on 2021-04-09
  */
+@WebApplication
 @Application(basepackage = "xyz.dsvshx")
 public class PeonyTestClient {
     public static void main(String[] args) throws Exception {

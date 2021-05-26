@@ -1,64 +1,111 @@
 package xyz.dsvshx.peony.point;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author dongzhonghua
  * Created on 2021-04-11
  */
-@Slf4j
 public class FrameworkPoint {
-
-
     /**
-     * 存储traceId
+     * 存储TransactionInfo
      */
-    private final static ThreadLocal<String> TRACE_ID_THREAD_LOCAL = new ThreadLocal<>();
+    private final static ThreadLocal<TransactionInfo> TRANSACTION_INFO_THREAD_LOCAL = new ThreadLocal<>();
+    private static TransactionInfo TRANSACTION_INFO;
 
     /**
      * 这种方式可以比较好的吧方法解耦出来，并且也比较好的解决了多个classloader带来的问题，但是引来了另一个问题
      * 反射必然会带来性能的损失，这个没有好的解决方案，但是本身是带采样的，所以还好
+     * <p>
+     * 这两个方法主要作用是：
      */
     public static Method CONTEXT_ENTRY = null;
     public static Method CONTEXT_EXIT = null;
 
+    public static Method CONTEXT_CUR_TRANSACTION_ID = null;
+
+    public static String getCurTraceId() {
+        TransactionInfo transactionInfo = TRANSACTION_INFO_THREAD_LOCAL.get();
+        String tid = transactionInfo.traceId;
+        if (tid == null) {
+            try {
+                tid = (String) CONTEXT_CUR_TRANSACTION_ID.invoke(null);
+                System.out.println("》》》》》》》》》》" + tid);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                //
+            }
+        }
+        return tid;
+    }
+
     /**
+     * 由字节码调用，修改框架的字节码，调用这个函数
      * 适配各个框架，在框架入口处埋点。比如， my-rpc里可以在服务端收到请求之后把上游传过来的id埋进ThreadLocal里。
      * 并且执行CONTEXT_ENTRY中的逻辑。
      * exit类似
+     * <p>
+     * 要加入spanID parentSpanID
      *
      * @param traceId 追踪ID
+     * @param spanId spanId 应该自己生成，不应该前面传给自己
+     * @param parentSpanId 上个步骤的spanId
      */
-    public static void enterContext(String traceId) {
+    public static void enter(String traceId, String spanId, String parentSpanId) {
         try {
+            // 好像也可以把这些放到CONTEXT_ENTRY里在做，但是这样的话传参什么的比较麻烦，还是这样比较方便。
             if (traceId == null || traceId.trim().length() == 0) {
                 traceId = UUID.randomUUID().toString();
             }
-            TRACE_ID_THREAD_LOCAL.set(traceId);
-            log.info(">>>>>>>>>>>>>>>>>>Thread {} set traceId:{}", Thread.currentThread().getName(), traceId);
+            if (spanId == null || spanId.trim().length() == 0) {
+                spanId = UUID.randomUUID().toString();
+            }
+            if (parentSpanId == null || parentSpanId.trim().length() == 0) {
+                parentSpanId = "-1";
+            }
+            TRANSACTION_INFO = new TransactionInfo(traceId, spanId, parentSpanId);
+            TRANSACTION_INFO_THREAD_LOCAL.set(TRANSACTION_INFO);
+            System.out.printf(">>>>>>>>>Thread %s set, transaction info :%s%n", Thread.currentThread().getName(),
+                    TRANSACTION_INFO);
             if (CONTEXT_ENTRY != null) {
                 //invoke方法的签名为：Object invoke(Object obj, Object... args)，第一个参数是调用方法的对象，其余的提供了调用方法所需要的参数。
                 // 对于静态方法，第一个参数可以被忽略，即直接设置为null
                 CONTEXT_ENTRY.invoke(null);
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
+            e.printStackTrace();
         }
     }
 
 
-    public static void exitContext() {
+    public static void exit() {
         try {
-            TRACE_ID_THREAD_LOCAL.remove();
-            log.info(">>>>>>>>>>>>>>>>>>Thread {} exit", Thread.currentThread().getName());
+            TRANSACTION_INFO_THREAD_LOCAL.remove();
+            System.out.printf(">>>>>>>>>Thread %s exit, transaction info :%s%n", Thread.currentThread().getName(),
+                    TRANSACTION_INFO);
             if (CONTEXT_EXIT != null) {
                 CONTEXT_EXIT.invoke(null);
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public static class TransactionInfo {
+        String traceId;
+        String spanId;
+        String parentSpanId;
+
+        public TransactionInfo(String traceId, String spanId, String parentSpanId) {
+            this.traceId = traceId;
+            this.spanId = spanId;
+            this.parentSpanId = parentSpanId;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("traceId: %s, spanId: %s, parentSpanId: %s", traceId, spanId, parentSpanId);
         }
     }
 }

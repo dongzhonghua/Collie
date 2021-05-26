@@ -13,17 +13,17 @@ import java.util.Arrays;
 public class Point {
 
     // 这两个在什么时候赋值呢？
-    public static Method beforeMethod;
-    public static Method completeMethod;
+    public static Method BEFORE_METHOD;
+    public static Method COMPLETE_METHOD;
 
     static {
         System.out.println("----------------Point class loader is " + Point.class.getClassLoader());
     }
 
     public static void before(String className, String methodName, String descriptor, Object[] params) {
-        if (beforeMethod != null) {
+        if (BEFORE_METHOD != null) {
             try {
-                beforeMethod.invoke(null, className, methodName, descriptor, params);
+                BEFORE_METHOD.invoke(null, className, methodName, descriptor, params);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
@@ -31,9 +31,9 @@ public class Point {
     }
 
     public static void complete(String className, String methodName, String descriptor, Object returnValueOrThrowable) {
-        if (completeMethod != null) {
+        if (COMPLETE_METHOD != null) {
             try {
-                completeMethod.invoke(null, className, methodName, descriptor, returnValueOrThrowable);
+                COMPLETE_METHOD.invoke(null, className, methodName, descriptor, returnValueOrThrowable);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }

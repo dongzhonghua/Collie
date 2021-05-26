@@ -13,6 +13,7 @@ public interface FrameworkAdaptor {
      * @param loader 类加载器
      * @param className 类名
      * @param classBytes 类的字节码
+     * @param spyJarPath spy
      */
-    byte[] modifyClass(ClassLoader loader, String className, byte[] classBytes);
+    byte[] modifyClass(ClassLoader loader, String className, byte[] classBytes, String spyJarPath);
 }
