@@ -1,6 +1,7 @@
 package xyz.dsvshx.peony.core.aspect;
 
-import com.alibaba.fastjson.JSONObject;
+import xyz.dsvshx.peony.core.model.CallRecord;
+import xyz.dsvshx.peony.point.FrameworkPoint;
 
 /**
  * @author dongzhonghua
@@ -13,25 +14,41 @@ public class LogAspectImpl implements MethodAspect, FrameworkAspect {
      */
     @Override
     public void before(String className, String methodName, String descriptor, Object[] params) {
-        System.out.printf("---------------------------------before------------------\n"
-                        + "className:%s,\nmethodName:%s,\ndescriptor:%s,\nstartTime:%d,\nparams:%s\n\n",
-                className, methodName, descriptor, System.currentTimeMillis(), JSONObject.toJSON(params));
+        CallRecord callRecord = new CallRecord();
+        callRecord.setClassName(className);
+        callRecord.setMethodName(methodName);
+        callRecord.setDescriptor(descriptor);
+        callRecord.setParamList(params);
+        callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
+        callRecord.setStartTime(System.currentTimeMillis());
+        System.out.println("---------------------------------before------------------");
+        System.out.println(callRecord);
     }
 
     @Override
     public void error(String className, String methodName, String descriptor, Throwable throwable) {
-        System.out.printf("---------------------------------complete------------------\n"
-                        + "className:%s,\nmethodName:%s,\ndescriptor:%s,\nendTime:%d,\ncost:%d,\nreturn:%s\n\n",
-                className, methodName, descriptor, System.currentTimeMillis(), -1,
-                JSONObject.toJSON(throwable));
+        CallRecord callRecord = new CallRecord();
+        callRecord.setClassName(className);
+        callRecord.setMethodName(methodName);
+        callRecord.setDescriptor(descriptor);
+        callRecord.setThrowable(throwable);
+        callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
+        callRecord.setFinishTime(System.currentTimeMillis());
+        System.out.println("---------------------------------error------------------");
+        System.out.println(callRecord);
     }
 
     @Override
-    public void after(String className, String methodName, String descriptor, Object returnValueOrThrowable) {
-        System.out.printf("---------------------------------complete------------------\n"
-                        + "className:%s,\nmethodName:%s,\ndescriptor:%s,\nendTime:%d,\ncost:%d,\nreturn:%s\n\n",
-                className, methodName, descriptor, System.currentTimeMillis(), -1,
-                JSONObject.toJSON(returnValueOrThrowable));
+    public void after(String className, String methodName, String descriptor, Object result) {
+        CallRecord callRecord = new CallRecord();
+        callRecord.setClassName(className);
+        callRecord.setMethodName(methodName);
+        callRecord.setDescriptor(descriptor);
+        callRecord.setResult(result);
+        callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
+        callRecord.setFinishTime(System.currentTimeMillis());
+        System.out.println("---------------------------------after------------------");
+        System.out.println(callRecord);
     }
 
     /**

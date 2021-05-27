@@ -36,7 +36,8 @@ public class MethodCallLisener {
                     methodAspect.before(className, methodName, descriptor, params);
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -53,8 +54,8 @@ public class MethodCallLisener {
                     }
                 }
             }
-        } catch (Exception ignored) {
-
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

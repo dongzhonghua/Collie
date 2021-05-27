@@ -1,6 +1,5 @@
 package xyz.dsvshx.peony.point;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
@@ -19,25 +18,25 @@ public class FrameworkPoint {
      * 这种方式可以比较好的吧方法解耦出来，并且也比较好的解决了多个classloader带来的问题，但是引来了另一个问题
      * 反射必然会带来性能的损失，这个没有好的解决方案，但是本身是带采样的，所以还好
      * <p>
-     * 这两个方法主要作用是：
+     * 这两个方法主要作用是：在这里没有什么比较特殊的作用，如果要记录日志可以在这里记录，但是设置tid等就不用在这里记录了
      */
     public static Method CONTEXT_ENTRY = null;
     public static Method CONTEXT_EXIT = null;
 
     public static Method CONTEXT_CUR_TRANSACTION_ID = null;
 
-    public static String getCurTraceId() {
+    public static TransactionInfo getCurTraceId() {
         TransactionInfo transactionInfo = TRANSACTION_INFO_THREAD_LOCAL.get();
-        String tid = transactionInfo.traceId;
-        if (tid == null) {
-            try {
-                tid = (String) CONTEXT_CUR_TRANSACTION_ID.invoke(null);
-                System.out.println("》》》》》》》》》》" + tid);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                //
-            }
-        }
-        return tid;
+        // 这段加的非常没有必要，如果是没有transactionInfo，还有没有必要再去生成一个？
+        // if (transactionInfo == null) {
+        //     try {
+        //         transactionInfo = (TransactionInfo) CONTEXT_CUR_TRANSACTION_ID.invoke(null);
+        //         System.out.println("》》》》》》》》》》" + transactionInfo);
+        //     } catch (IllegalAccessException | InvocationTargetException e) {
+        //         //
+        //     }
+        // }
+        return transactionInfo;
     }
 
     /**

@@ -128,7 +128,12 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
     }
 
     private void addMethodAspect(String clazzname, CtBehavior ctBehavior, boolean isConstructor) throws Exception {
-        if (isNative(ctBehavior) || isAbstract(ctBehavior)) {
+        if (isNative(ctBehavior)
+                || isAbstract(ctBehavior)
+                || ctBehavior.getName().equals("toString")
+                || ctBehavior.getName().equals("getClass")
+                || ctBehavior.getName().equals("equals")
+                || ctBehavior.getName().equals("hashCode")) {
             return;
         }
         // 方法前加强

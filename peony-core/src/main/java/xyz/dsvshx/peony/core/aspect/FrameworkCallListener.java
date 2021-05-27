@@ -20,6 +20,7 @@ public final class FrameworkCallListener {
         CONTEXT_LISTENERS.add(new LogAspectImpl());
     }
 
+    //
     public static void init() {
         try {
             FrameworkPoint.CONTEXT_ENTRY = FrameworkAspect.class.getMethod("entry");

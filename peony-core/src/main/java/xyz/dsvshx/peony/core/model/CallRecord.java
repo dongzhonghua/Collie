@@ -1,6 +1,7 @@
 package xyz.dsvshx.peony.core.model;
 
 import lombok.Data;
+import xyz.dsvshx.peony.point.FrameworkPoint.TransactionInfo;
 
 /**
  * @author dongzhonghua
@@ -9,8 +10,7 @@ import lombok.Data;
 @Data
 public class CallRecord {
     // 唯一ID
-    private String transactionId;
-    private String spanId;
+    private TransactionInfo transactionInfo;
     private String className;
     private String methodName;
     /**

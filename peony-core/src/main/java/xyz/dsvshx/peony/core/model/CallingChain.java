@@ -2,6 +2,7 @@ package xyz.dsvshx.peony.core.model;
 
 import lombok.Builder;
 import lombok.Data;
+import xyz.dsvshx.peony.point.FrameworkPoint.TransactionInfo;
 
 /**
  * @author dongzhonghua
@@ -10,11 +11,6 @@ import lombok.Data;
 @Data
 @Builder
 public class CallingChain {
-    private String transactionId;
-    private String spanId;
-
+    private TransactionInfo transactionInfo;
     private CallRecord curRecord;
-
-
-
 }
