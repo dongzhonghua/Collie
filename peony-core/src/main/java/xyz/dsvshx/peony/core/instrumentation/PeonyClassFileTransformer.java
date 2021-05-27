@@ -84,7 +84,7 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
         for (FrameworkAdaptor adaptor : frameworkAdaptors) {
             byte[] result = adaptor.modifyClass(loader, className, classfileBuffer, spyJarPath);
             if (result != null) {
-                return result;
+                return classTransform(className, result);
             }
         }
 
