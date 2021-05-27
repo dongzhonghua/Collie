@@ -21,8 +21,7 @@ public class LogAspectImpl implements MethodAspect, FrameworkAspect {
         callRecord.setParamList(params);
         callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
         callRecord.setStartTime(System.currentTimeMillis());
-        System.out.println("---------------------------------before------------------");
-        System.out.println(callRecord);
+        printLog(callRecord, "before");
     }
 
     @Override
@@ -34,8 +33,7 @@ public class LogAspectImpl implements MethodAspect, FrameworkAspect {
         callRecord.setThrowable(throwable);
         callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
         callRecord.setFinishTime(System.currentTimeMillis());
-        System.out.println("---------------------------------error------------------");
-        System.out.println(callRecord);
+        printLog(callRecord, "error");
     }
 
     @Override
@@ -47,8 +45,15 @@ public class LogAspectImpl implements MethodAspect, FrameworkAspect {
         callRecord.setResult(result);
         callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
         callRecord.setFinishTime(System.currentTimeMillis());
-        System.out.println("---------------------------------after------------------");
-        System.out.println(callRecord);
+        printLog(callRecord, "after");
+    }
+
+    private static void printLog(CallRecord callRecord, String type) {
+        if (callRecord.getTransactionInfo() != null) {
+            System.out.printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%s$$$$$$$$$$$$$$$$$$%n", type);
+            System.out.println(callRecord);
+        }
+        // 后续可以发到kafka里
     }
 
     /**

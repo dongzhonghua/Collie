@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import xyz.dsvshx.peony.core.adaptor.FrameworkAdaptor;
 import xyz.dsvshx.peony.core.adaptor.summer.SummerFrameworkAdaptorImpl;
 import xyz.dsvshx.peony.core.aspect.MethodCallLisener;
-import xyz.dsvshx.peony.core.model.CallRecord;
 
 /**
  * @author dongzhonghua
@@ -177,7 +176,7 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
             CtClass ctClass = classPool.get(className.replace("/", "."));
             // 所有函数和构造函数
             for (CtBehavior ctBehavior : ctClass.getDeclaredBehaviors()) {
-                String methodId = CallRecord.getMethodId(className, ctBehavior.getName());
+                String methodId = "CallRecord.getMethodId(className, ctBehavior.getName())";
 
                 CodeAttribute codeAttribute = ctBehavior.getMethodInfo().getCodeAttribute();
                 // 获取方法的入参的名称
