@@ -1,5 +1,8 @@
 package xyz.dsvshx.peony.core.aspect;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import xyz.dsvshx.peony.core.model.CallRecord;
 import xyz.dsvshx.peony.point.FrameworkPoint;
 
@@ -8,6 +11,8 @@ import xyz.dsvshx.peony.point.FrameworkPoint;
  * Created on 2021-04-20
  */
 public class LogAspectImpl implements MethodAspect, FrameworkAspect {
+
+    private Map<String, CallRecord> callRecordMap = new HashMap<>();
 
     /**
      * 具体的实现调用链日志的打印
@@ -22,6 +27,7 @@ public class LogAspectImpl implements MethodAspect, FrameworkAspect {
         callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
         callRecord.setStartTime(System.currentTimeMillis());
         printLog(callRecord, "before");
+        callRecordMap.put(callRecord.createCallRecordId(), callRecord);
     }
 
     @Override
@@ -41,11 +47,17 @@ public class LogAspectImpl implements MethodAspect, FrameworkAspect {
         CallRecord callRecord = new CallRecord();
         callRecord.setClassName(className);
         callRecord.setMethodName(methodName);
-        callRecord.setDescriptor(descriptor);
-        callRecord.setResult(result);
         callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
-        callRecord.setFinishTime(System.currentTimeMillis());
-        printLog(callRecord, "after");
+        CallRecord callRecord1 = callRecordMap.get(callRecord.createCallRecordId());
+        if (callRecord1 != null) {
+            callRecord1.setResult(result);
+            long finishTime = System.currentTimeMillis();
+            callRecord1.setFinishTime(finishTime);
+            callRecord1.setCntMs(finishTime - callRecord1.getStartTime());
+            callRecordMap.put(callRecord.createCallRecordId(), callRecord1);
+            printLog(callRecord1, "after");
+        }
+
     }
 
     private static void printLog(CallRecord callRecord, String type) {
@@ -66,6 +78,8 @@ public class LogAspectImpl implements MethodAspect, FrameworkAspect {
 
     @Override
     public void exit() {
+        // System.out.println(JSON.toJSONString(callRecordMap));
 
+        callRecordMap.clear();
     }
 }

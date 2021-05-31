@@ -19,6 +19,8 @@ import javassist.bytecode.LocalVariableAttribute;
 import lombok.extern.slf4j.Slf4j;
 import xyz.dsvshx.peony.core.adaptor.FrameworkAdaptor;
 import xyz.dsvshx.peony.core.adaptor.summer.SummerFrameworkAdaptorImpl;
+import xyz.dsvshx.peony.core.aspect.FrameworkCallListener;
+import xyz.dsvshx.peony.core.aspect.LogAspectImpl;
 import xyz.dsvshx.peony.core.aspect.MethodCallLisener;
 
 /**
@@ -43,7 +45,9 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
 
     private void initAspect() {
         try {
-            MethodCallLisener.init();
+            LogAspectImpl logAspect = new LogAspectImpl();
+            MethodCallLisener.init(logAspect);
+            FrameworkCallListener.init(logAspect);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -93,7 +97,6 @@ public class PeonyClassFileTransformer implements ClassFileTransformer {
         if (!className.contains("xyz/dsvshx")) {
             return classfileBuffer;
         }
-        log.info("transform class name:" + className);
         return classTransform(className, classfileBuffer);
     }
 

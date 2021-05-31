@@ -17,6 +17,7 @@ public class PeonyClassLoader extends URLClassLoader {
 
     @Override
     protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+
         final Class<?> loadedC = findLoadedClass(name);
         if (loadedC != null) {
             return loadedC;
@@ -34,7 +35,6 @@ public class PeonyClassLoader extends URLClassLoader {
                 if (resolve) {
                     resolveClass(loadedClass);
                 }
-                log.info(">>>>>>>>>>>>使用PeonyClassloader加载类：" + name);
                 return loadedClass;
             }
         } catch (ClassNotFoundException ignored) {

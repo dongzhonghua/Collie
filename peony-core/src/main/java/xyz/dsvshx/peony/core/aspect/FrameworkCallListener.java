@@ -13,18 +13,16 @@ import xyz.dsvshx.peony.point.FrameworkPoint;
  */
 public final class FrameworkCallListener {
 
-    private final static List<FrameworkAspect> CONTEXT_LISTENERS;
+    private static List<FrameworkAspect> CONTEXT_LISTENERS;
 
-    static {
-        CONTEXT_LISTENERS = new ArrayList<>();
-        CONTEXT_LISTENERS.add(new LogAspectImpl());
-    }
 
     //
-    public static void init() {
+    public static void init(FrameworkAspect logAspect) {
         try {
-            FrameworkPoint.CONTEXT_ENTRY = FrameworkAspect.class.getMethod("entry");
-            FrameworkPoint.CONTEXT_EXIT = FrameworkAspect.class.getMethod("exit");
+            CONTEXT_LISTENERS = new ArrayList<>();
+            CONTEXT_LISTENERS.add(logAspect);
+            FrameworkPoint.CONTEXT_ENTRY = FrameworkCallListener.class.getMethod("entry");
+            FrameworkPoint.CONTEXT_EXIT = FrameworkCallListener.class.getMethod("exit");
         } catch (NoSuchMethodException e) {
             //
         }

@@ -16,12 +16,12 @@ public class MethodCallLisener {
 
     private static List<MethodAspect> methodAspects;
 
-    public static void init() throws NoSuchMethodException {
+    public static void init(MethodAspect methodAspect) throws NoSuchMethodException {
         // 获取Aspect所有的实现类
         methodAspects = new ArrayList<>();
         // 这种方式可能得结合spi使用，直接用不行
         // ServiceLoader<Aspect> aspectImpls = ServiceLoader.load(Aspect.class);
-        methodAspects.add(new LogAspectImpl());
+        methodAspects.add(methodAspect);
         // 初始化Spy的方法
         Point.BEFORE_METHOD = MethodCallLisener.class.getMethod("before", String.class,
                 String.class, String.class, Object[].class);
