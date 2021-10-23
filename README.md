@@ -1,5 +1,9 @@
-# peony
+# collie
 Java分布式调用链系统
+
+todo:
+
+-[ ] 方法有多个返回和出口，采取的方法是把原方法重命名，新增一个同名的。  
 
 ## 什么是分布式调用链追踪？
 
@@ -85,7 +89,7 @@ classPool.appendClassPath(spyJarPath);
 
 ---
 
-上面是在调研过程中总结的一些知识，现在这个功能差不多已经完成了，git地址：https://github.com/dongzhonghua/peony
+上面是在调研过程中总结的一些知识，现在这个功能差不多已经完成了，git地址：https://github.com/dongzhonghua/collie
 
 大致可以总结一下，有这么几个点是非常需要总结的：
 
@@ -100,15 +104,15 @@ classPool.appendClassPath(spyJarPath);
 
 ### 自定义类加载器，拆分jar包，类隔离机制。
 
-<img src="https://gitee.com/dongzhonghua/zhonghua/raw/master/img/blog/peony%E7%B1%BB%E5%8A%A0%E8%BD%BD.png" alt="image-20210530214706546" style="zoom: 50%;" />
+<img src="https://gitee.com/dongzhonghua/zhonghua/raw/master/img/blog/collie%E7%B1%BB%E5%8A%A0%E8%BD%BD.png" alt="image-20210530214706546" style="zoom: 50%;" />
 
-首先，peony的启动方式是这样的：
+首先，collie的启动方式是这样的：
 
 ```
-java -javaagent:xxx/peony-agent-1.0-SNAPSHOT-jar-with-dependencies.jar=xxx/peony-core-1.0-SNAPSHOT-jar-with-dependencies.jar,xxx/peony-spy-1.0-SNAPSHOT.jar -jar xxx/peony-test-1.0-SNAPSHOT.jar
+java -javaagent:xxx/collie-agent-1.0-SNAPSHOT-jar-with-dependencies.jar=xxx/collie-core-1.0-SNAPSHOT-jar-with-dependencies.jar,xxx/collie-spy-1.0-SNAPSHOT.jar -jar xxx/collie-test-1.0-SNAPSHOT.jar
 ```
 
-这种方式非常的丑，为什么要这样呢。一条一条来看的话，首先是-javaagent:xxx/peony-agent-1.0-SNAPSHOT-jar-with-dependencies.jar，这个制定了agent jar包的地址，至于agent，资料比较多。=xxx/peony-core-1.0-SNAPSHOT-jar-with-dependencies.jar,xxx/peony-spy-1.0-SNAPSHOT.jar这个是制定了agent的参数。这里指定的有两个jar包地址，一个是spy，一个是core。后面的就是业务代码所在的jar包了。主要讲一下spy和jar包是什么作用。首先调用链的主要代码是在core里面，但是core不能用应用类加载器，否则可能污染业务代码，比如，业务用了spring 5，但是core用的是spring 4，那么加载的时候会出现冲突，所以core里需要用自定义的类加载器加载。
+这种方式非常的丑，为什么要这样呢。一条一条来看的话，首先是-javaagent:xxx/collie-agent-1.0-SNAPSHOT-jar-with-dependencies.jar，这个制定了agent jar包的地址，至于agent，资料比较多。=xxx/collie-core-1.0-SNAPSHOT-jar-with-dependencies.jar,xxx/collie-spy-1.0-SNAPSHOT.jar这个是制定了agent的参数。这里指定的有两个jar包地址，一个是spy，一个是core。后面的就是业务代码所在的jar包了。主要讲一下spy和jar包是什么作用。首先调用链的主要代码是在core里面，但是core不能用应用类加载器，否则可能污染业务代码，比如，业务用了spring 5，但是core用的是spring 4，那么加载的时候会出现冲突，所以core里需要用自定义的类加载器加载。
 
 spy里只有三个类，最主要的是两个，为什么要单独分出来呢？因为调用链框架需要埋点，会用到Point类的方法，但是如果Point类用应用类加载器加载，则在core里会找不到，如果用自定义的加载器加载，则业务代码中的打点会获取不到这个类，因为一个类只能获取到他自己和其父加载器加载的类。所以我们干脆吧spy交给启动类加载器。目前我还不知道有没有更好地方式来解决这个问题。
 
@@ -154,18 +158,18 @@ private void addMethodAspect(String clazzname, CtBehavior ctBehavior, boolean is
         // 转成封装类型的话非常方便，使用$w就可以，还是牛逼啊，而且也不影响其他的Object类型
         String methodName = isConstructor ? ctBehavior.getName() + "#" : ctBehavior.getName();
         ctBehavior.insertBefore(
-                String.format("{xyz.dsvshx.peony.point.Point.before(\"%s\", \"%s\", \"%s\", %s);}",
+                String.format("{xyz.dsvshx.collie.point.Point.before(\"%s\", \"%s\", \"%s\", %s);}",
                         clazzname, methodName, "还不知道传什么", "($w)$args")
         );
         // 打点加到最后
         // complete(String className, String methodName, String descriptor, Object returnValueOrThrowable)
         ctBehavior.insertAfter(
-                String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);}",
+                String.format("{xyz.dsvshx.collie.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);}",
                         clazzname, methodName, "还不知道传什么", "($w)$_")
         );
         // 捕获异常
         ctBehavior.addCatch(
-                String.format("{xyz.dsvshx.peony.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);"
+                String.format("{xyz.dsvshx.collie.point.Point.complete(\"%s\", \"%s\", \"%s\", %s);"
                                 + "throw $e;}",
                         clazzname, methodName, "还不知道传什么", "$e"),
                 ClassPool.getDefault().get("java.lang.Throwable")
@@ -264,12 +268,12 @@ public class SummerFrameworkAdaptorImpl implements FrameworkAdaptor {
                 CtMethod doHandlerMethod = ctClass.getDeclaredMethod("doHandler");
                 // 没想到这么简单就成了？
                 doHandlerMethod.insertBefore("{"
-                        + "String traceId = fullHttpRequest.headers().get(\"peony-trace-id\");"
-                        + "String parentSpanId = fullHttpRequest.headers().get(\"peony-span-id\");"
-                        + "xyz.dsvshx.peony.point.FrameworkPoint.enter(traceId, \"\", parentSpanId);"
+                        + "String traceId = fullHttpRequest.headers().get(\"collie-trace-id\");"
+                        + "String parentSpanId = fullHttpRequest.headers().get(\"collie-span-id\");"
+                        + "xyz.dsvshx.collie.point.FrameworkPoint.enter(traceId, \"\", parentSpanId);"
                         + "}");
                 doHandlerMethod.insertAfter("{"
-                        + "xyz.dsvshx.peony.point.FrameworkPoint.exit();"
+                        + "xyz.dsvshx.collie.point.FrameworkPoint.exit();"
                         + "}");
 
             }
@@ -295,7 +299,7 @@ CallRecord{transactionInfo=traceId: trace123456, spanId: f2c637e7-e33e-4231-9397
 --before
 CallRecord{transactionInfo=traceId: trace123456, spanId: f2c637e7-e33e-4231-9397-553d2e2972c5, parentSpanId: span123abc, className='xyz.dsvshx.ioc.entity.BeanDefinition', methodName='getBean', event='null', descriptor='', params='null', paramList=[], throwable=null, result=null, startTime=1622441782697, finishTime=0, cntMs=0}
 --after
-CallRecord{transactionInfo=traceId: trace123456, spanId: f2c637e7-e33e-4231-9397-553d2e2972c5, parentSpanId: span123abc, className='xyz.dsvshx.ioc.entity.BeanDefinition', methodName='getBean', event='null', descriptor='', params='null', paramList=[], throwable=null, result=xyz.dsvshx.peony.controller.HelloController$$EnhancerByCGLIB$$2347223e@6ab7a896,ime=1622441782697, finishTime=1622441782697, cntMs=0}
+CallRecord{transactionInfo=traceId: trace123456, spanId: f2c637e7-e33e-4231-9397-553d2e2972c5, parentSpanId: span123abc, className='xyz.dsvshx.ioc.entity.BeanDefinition', methodName='getBean', event='null', descriptor='', params='null', paramList=[], throwable=null, result=xyz.dsvshx.collie.controller.HelloController$$EnhancerByCGLIB$$2347223e@6ab7a896,ime=1622441782697, finishTime=1622441782697, cntMs=0}
 
 ```
 
