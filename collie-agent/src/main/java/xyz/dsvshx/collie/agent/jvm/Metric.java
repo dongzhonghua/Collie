@@ -38,6 +38,7 @@ public class Metric {
 
         );
         System.out.println(info);
+        System.out.println("=============================================================");
     }
 
     public static void printGCInfo() {
@@ -49,6 +50,7 @@ public class Metric {
                     garbage.getCollectionTime(),
                     Arrays.deepToString(garbage.getMemoryPoolNames()));
             System.out.println(info);
+            System.out.println("=============================================================");
         }
     }
 }

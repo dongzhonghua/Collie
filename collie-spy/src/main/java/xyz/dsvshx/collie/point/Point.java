@@ -10,6 +10,7 @@ import java.util.Arrays;
  * @author dongzhonghua
  * Created on 2021-04-11
  */
+@Deprecated
 public class Point {
 
     // 这两个在什么时候赋值呢？

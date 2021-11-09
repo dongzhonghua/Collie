@@ -104,7 +104,7 @@ classPool.appendClassPath(spyJarPath);
 
 ### 自定义类加载器，拆分jar包，类隔离机制。
 
-<img src="https://gitee.com/dongzhonghua/zhonghua/raw/master/img/blog/collie%E7%B1%BB%E5%8A%A0%E8%BD%BD.png" alt="image-20210530214706546" style="zoom: 50%;" />
+<img src="https://gitee.com/dongzhonghua/zhonghua/raw/master/img/blog/peony%E7%B1%BB%E5%8A%A0%E8%BD%BD.png" alt="image-20210530214706546" style="zoom: 50%;" />
 
 首先，collie的启动方式是这样的：
 
