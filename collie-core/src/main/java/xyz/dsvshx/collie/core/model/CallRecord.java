@@ -2,8 +2,8 @@ package xyz.dsvshx.collie.core.model;
 
 import java.util.Arrays;
 
+import xyz.dsvshx.collie.core.aspect.LogAspectImpl.TransactionInfo;
 import xyz.dsvshx.collie.core.util.Encryption;
-import xyz.dsvshx.collie.point.FrameworkPoint.TransactionInfo;
 
 /**
  * @author dongzhonghua
@@ -22,6 +22,7 @@ public class CallRecord {
     private String params;
     private Object[] paramList;
     private Throwable throwable;
+    private Object target;
     private Object result;
 
     private long startTime;
@@ -134,19 +135,25 @@ public class CallRecord {
 
     @Override
     public String toString() {
-        return "CallRecord{" +
-                "transactionInfo=" + transactionInfo.toString() +
-                ", className='" + className + '\'' +
-                ", methodName='" + methodName + '\'' +
-                ", event='" + event + '\'' +
-                ", descriptor='" + descriptor + '\'' +
-                ", params='" + params + '\'' +
-                ", paramList=" + Arrays.toString(paramList) +
-                ", throwable=" + throwable +
-                ", result=" + result +
-                ", startTime=" + startTime +
-                ", finishTime=" + finishTime +
-                ", cntMs=" + cntMs +
-                '}';
+        return "\nCallRecord{" +
+                "\ntransactionInfo=" + transactionInfo.toString() +
+                ", \nclassName='" + className + '\'' +
+                ", \nmethodName='" + methodName + '\'' +
+                ", \ndescriptor='" + descriptor + '\'' +
+                ", \nparamList=" + Arrays.toString(paramList) +
+                ", \nthrowable=" + throwable +
+                ", \nresult=" + result +
+                ", \nstartTime=" + startTime +
+                ", \nfinishTime=" + finishTime +
+                ", \ncntMs=" + cntMs +
+                "\n}";
+    }
+
+    public Object getTarget() {
+        return target;
+    }
+
+    public void setTarget(Object target) {
+        this.target = target;
     }
 }

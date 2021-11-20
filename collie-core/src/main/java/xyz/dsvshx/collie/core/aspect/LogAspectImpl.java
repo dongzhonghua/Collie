@@ -2,9 +2,9 @@ package xyz.dsvshx.collie.core.aspect;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import xyz.dsvshx.collie.core.model.CallRecord;
-import xyz.dsvshx.collie.point.FrameworkPoint;
 
 /**
  * @author dongzhonghua
@@ -13,73 +13,116 @@ import xyz.dsvshx.collie.point.FrameworkPoint;
 public class LogAspectImpl implements MethodAspect, FrameworkAspect {
 
     private Map<String, CallRecord> callRecordMap = new HashMap<>();
-
     /**
-     * 具体的实现调用链日志的打印
+     * 存储TransactionInfo
      */
+    public final static ThreadLocal<TransactionInfo> TRANSACTION_INFO_THREAD_LOCAL = new ThreadLocal<>();
+    private static TransactionInfo TRANSACTION_INFO;
+
     @Override
-    public void before(String className, String methodName, String descriptor, Object[] params) {
+    public void before(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args) {
         CallRecord callRecord = new CallRecord();
-        callRecord.setClassName(className);
+        callRecord.setClassName(clazz.getName());
         callRecord.setMethodName(methodName);
-        callRecord.setDescriptor(descriptor);
-        callRecord.setParamList(params);
-        callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
+        callRecord.setDescriptor(methodDesc);
+        callRecord.setParamList(args);
+        callRecord.setTarget(target);
+        callRecord.setTransactionInfo(TRANSACTION_INFO_THREAD_LOCAL.get());
         callRecord.setStartTime(System.currentTimeMillis());
         printLog(callRecord, "before");
         callRecordMap.put(callRecord.createCallRecordId(), callRecord);
     }
 
     @Override
-    public void error(String className, String methodName, String descriptor, Throwable throwable) {
+    public void after(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args,
+            Object returnObject) {
+        System.out.println(callRecordMap);
         CallRecord callRecord = new CallRecord();
-        callRecord.setClassName(className);
+        callRecord.setClassName(clazz.getName());
         callRecord.setMethodName(methodName);
-        callRecord.setDescriptor(descriptor);
-        callRecord.setThrowable(throwable);
-        callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
-        callRecord.setFinishTime(System.currentTimeMillis());
-        printLog(callRecord, "error");
-    }
-
-    @Override
-    public void after(String className, String methodName, String descriptor, Object result) {
-        CallRecord callRecord = new CallRecord();
-        callRecord.setClassName(className);
-        callRecord.setMethodName(methodName);
-        callRecord.setTransactionInfo(FrameworkPoint.getCurTraceId());
+        callRecord.setTarget(target);
+        callRecord.setTransactionInfo(TRANSACTION_INFO_THREAD_LOCAL.get());
         CallRecord callRecord1 = callRecordMap.get(callRecord.createCallRecordId());
         if (callRecord1 != null) {
-            callRecord1.setResult(result);
+            callRecord1.setResult(returnObject);
             long finishTime = System.currentTimeMillis();
             callRecord1.setFinishTime(finishTime);
             callRecord1.setCntMs(finishTime - callRecord1.getStartTime());
             callRecordMap.put(callRecord.createCallRecordId(), callRecord1);
             printLog(callRecord1, "after");
         }
+    }
 
+    @Override
+    public void error(Class<?> clazz, String methodName, String methodDesc, Object target, Object[] args,
+            Throwable throwable) {
+        CallRecord callRecord = new CallRecord();
+        callRecord.setClassName(clazz.getName());
+        callRecord.setMethodName(methodName);
+        callRecord.setDescriptor(methodDesc);
+        callRecord.setTarget(target);
+        callRecord.setThrowable(throwable);
+        callRecord.setTransactionInfo(TRANSACTION_INFO_THREAD_LOCAL.get());
+        callRecord.setFinishTime(System.currentTimeMillis());
+        printLog(callRecord, "error");
+    }
+
+    @Override
+    public void entry(String traceId, String spanId, String parentSpanId) {
+        try {
+            if (traceId == null || traceId.trim().length() == 0) {
+                traceId = UUID.randomUUID().toString();
+            }
+            if (spanId == null || spanId.trim().length() == 0) {
+                spanId = UUID.randomUUID().toString();
+            }
+            if (parentSpanId == null || parentSpanId.trim().length() == 0) {
+                parentSpanId = "-1";
+            }
+            TRANSACTION_INFO = new TransactionInfo(traceId, spanId, parentSpanId);
+            TRANSACTION_INFO_THREAD_LOCAL.set(TRANSACTION_INFO);
+            System.out.printf(">>>>>>>>>Thread %s set, transaction info :%s%n", Thread.currentThread().getName(),
+                    TRANSACTION_INFO);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void exit(String info) {
+        try {
+            System.out.println(info);
+            callRecordMap.clear();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void printLog(CallRecord callRecord, String type) {
-        if (callRecord.getTransactionInfo() != null) {
-            System.out.printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%s$$$$$$$$$$$$$$$$$$%n", type);
+        // if (callRecord.getTransactionInfo() != null) {
+        if (callRecord.getTransactionInfo() == null) {
+            callRecord.setTransactionInfo(new TransactionInfo("null", "null", "null"));
+            System.out.printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%s$$$$$$$$$$$$$$$$$$", type);
             System.out.println(callRecord);
         }
+        // }
         // 后续可以发到kafka里
     }
 
-    /**
-     * 具体的业务实现，如果要用链表来存储调用链信息的话可以在这里埋入一个ThreadLocal 链表
-     */
-    @Override
-    public void entry() {
-        // TODO: 2021/5/26 如果用链表存储在这里写，不过暂时不用，想去用写到MySQL的方法，至于kafka也可以用，但不必要
-    }
+    public static class TransactionInfo {
+        String traceId;
+        String spanId;
+        String parentSpanId;
 
-    @Override
-    public void exit() {
-        // System.out.println(JSON.toJSONString(callRecordMap));
+        public TransactionInfo(String traceId, String spanId, String parentSpanId) {
+            this.traceId = traceId;
+            this.spanId = spanId;
+            this.parentSpanId = parentSpanId;
+        }
 
-        callRecordMap.clear();
+        @Override
+        public String toString() {
+            return String.format("traceId: %s, spanId: %s, parentSpanId: %s", traceId, spanId, parentSpanId);
+        }
     }
 }

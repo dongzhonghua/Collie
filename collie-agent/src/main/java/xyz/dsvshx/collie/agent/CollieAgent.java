@@ -53,16 +53,14 @@ public class CollieAgent {
     private static synchronized void main(String agentOps, Instrumentation instrumentation) {
         try {
             log.info(">>>>>>>collie agent 启动...");
-
             // 使用启动类加载器load spy
-
             File agentSpyFile = new File(COLLIE_SPY_JAR);
             if (!agentSpyFile.exists()) {
-                System.out.println("Agent jar file does not exist: " + agentSpyFile);
+                System.out.println("Spy jar file does not exist: " + agentSpyFile);
                 return;
             }
+            // 使用启动类加载器加载agentSpy
             instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(agentSpyFile));
-
             // load core
             File agentCoreFile = new File(COLLIE_CORE_JAR);
             if (!agentCoreFile.exists()) {
@@ -71,10 +69,10 @@ public class CollieAgent {
             }
             // 使用自定义的类加载器加载core包
             ClassLoader collieClassLoader = getClassLoader(instrumentation, agentCoreFile);
-            // addTransformer
+            // addTransformer 使用transformer来进行插桩
             Class<?> collieClassFileTransformer = collieClassLoader.loadClass(TRANSFORMER);
-            Constructor<?> declaredConstructor = collieClassFileTransformer.getDeclaredConstructor(String.class);
-            instrumentation.addTransformer((ClassFileTransformer) declaredConstructor.newInstance(COLLIE_SPY_JAR));
+            Constructor<?> transform = collieClassFileTransformer.getDeclaredConstructor(String.class);
+            instrumentation.addTransformer((ClassFileTransformer) transform.newInstance(COLLIE_SPY_JAR));
             // jvm信息，暂时关闭
             // processJvmInfo();
         } catch (Throwable throwable) {
@@ -90,7 +88,6 @@ public class CollieAgent {
             Metric.printGCInfo();
         }, 0, 10000, TimeUnit.MILLISECONDS);
     }
-
     private static void shutdownJvmInfo() {
         EXECUTOR_SERVICE.shutdown();
     }

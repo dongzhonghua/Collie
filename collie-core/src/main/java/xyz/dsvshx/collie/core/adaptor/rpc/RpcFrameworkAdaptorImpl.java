@@ -1,14 +1,14 @@
 package xyz.dsvshx.collie.core.adaptor.rpc;
 
-import xyz.dsvshx.collie.core.adaptor.FrameworkAdaptor;
+import xyz.dsvshx.collie.core.adaptor.ClassAdaptor;
 
 /**
  * @author dongzhonghua
  * Created on 2021-05-26
  */
-public class RpcFrameworkAdaptorImpl implements FrameworkAdaptor {
+public class RpcFrameworkAdaptorImpl extends ClassAdaptor {
     @Override
-    public byte[] modifyClass(ClassLoader loader, String className, byte[] classBytes, String spyJarPath) {
-        return null;
+    public byte[] modifyClass(String className, byte[] classBytes, String spyJarPath) {
+        return classBytes;
     }
 }

@@ -3,7 +3,7 @@ package xyz.dsvshx.collie.core.adaptor.summer;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
-import xyz.dsvshx.collie.core.adaptor.FrameworkAdaptor;
+import xyz.dsvshx.collie.core.adaptor.ClassAdaptor;
 
 /**
  * 改造summer，注入traceId
@@ -11,11 +11,11 @@ import xyz.dsvshx.collie.core.adaptor.FrameworkAdaptor;
  * @author dongzhonghua
  * Created on 2021-05-26
  */
-public class SummerFrameworkAdaptorImpl implements FrameworkAdaptor {
+public class SummerFrameworkAdaptorImpl extends ClassAdaptor {
     @Override
-    public byte[] modifyClass(ClassLoader loader, String className, byte[] classBytes, String spyJarPath) {
+    public  byte[] modifyClass(String className, byte[] classBytes, String spyJarPath) {
         try {
-            if (className.equals("xyz/dsvshx/ioc/mvc/RequestHandler")) {
+            if (SUMMER_ADAPTOR_CLASS.equals(className)) {
                 ClassPool classPool = ClassPool.getDefault();
                 classPool.appendClassPath(spyJarPath);
                 String clazzname = className.replace("/", ".");
@@ -25,16 +25,21 @@ public class SummerFrameworkAdaptorImpl implements FrameworkAdaptor {
                 doHandlerMethod.insertBefore("{"
                         + "String traceId = fullHttpRequest.headers().get(\"collie-trace-id\");"
                         + "String parentSpanId = fullHttpRequest.headers().get(\"collie-span-id\");"
-                        + "xyz.dsvshx.collie.point.FrameworkPoint.enter(traceId, \"\", parentSpanId);"
+                        + "xyz.dsvshx.collie.point.SpyAPI.atFrameworkEnter(traceId, \"\", parentSpanId);"
                         + "}");
                 doHandlerMethod.insertAfter("{"
-                        + "xyz.dsvshx.collie.point.FrameworkPoint.exit();"
+                        + "String traceId = fullHttpRequest.headers().get(\"collie-trace-id\");"
+                        + "String parentSpanId = fullHttpRequest.headers().get(\"collie-span-id\");"
+                        + "xyz.dsvshx.collie.point.SpyAPI.atFrameworkExit(traceId + \"|\" + parentSpanId);"
                         + "}");
-
+                ctClass.writeFile(
+                        "/Users/dongzhonghua03/Documents/github/collie/collie-core/src/main/java/xyz/dsvshx/collie/core"
+                                + "/instrumentation");
+                return ctClass.toBytecode();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return classBytes;
     }
 }

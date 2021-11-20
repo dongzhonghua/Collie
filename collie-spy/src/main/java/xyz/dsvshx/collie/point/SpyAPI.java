@@ -53,17 +53,14 @@ public class SpyAPI {
         spyInstance.atExceptionExit(clazz, methodInfo, target, args, throwable);
     }
 
-    public static void atBeforeInvoke(Class<?> clazz, String invokeInfo, Object target) {
-        spyInstance.atBeforeInvoke(clazz, invokeInfo, target);
+    public static void atFrameworkEnter(String traceId, String spanId, String parentSpanId) {
+        spyInstance.atFrameworkEnter(traceId, spanId, parentSpanId);
     }
 
-    public static void atAfterInvoke(Class<?> clazz, String invokeInfo, Object target) {
-        spyInstance.atAfterInvoke(clazz, invokeInfo, target);
+    public static void atFrameworkExit(String info) {
+        spyInstance.atFrameworkExit(info);
     }
 
-    public static void atInvokeException(Class<?> clazz, String invokeInfo, Object target, Throwable throwable) {
-        spyInstance.atInvokeException(clazz, invokeInfo, target, throwable);
-    }
 
     public static abstract class AbstractSpy {
         public abstract void atEnter(Class<?> clazz, String methodInfo, Object target,
@@ -75,11 +72,9 @@ public class SpyAPI {
         public abstract void atExceptionExit(Class<?> clazz, String methodInfo, Object target,
                 Object[] args, Throwable throwable);
 
-        public abstract void atBeforeInvoke(Class<?> clazz, String invokeInfo, Object target);
+        public abstract void atFrameworkEnter(String traceId, String spanId, String parentSpanId);
 
-        public abstract void atAfterInvoke(Class<?> clazz, String invokeInfo, Object target);
-
-        public abstract void atInvokeException(Class<?> clazz, String invokeInfo, Object target, Throwable throwable);
+        public abstract void atFrameworkExit(String info);
     }
 
     static class NopSpy extends AbstractSpy {
@@ -99,20 +94,14 @@ public class SpyAPI {
         }
 
         @Override
-        public void atBeforeInvoke(Class<?> clazz, String invokeInfo, Object target) {
+        public void atFrameworkEnter(String traceId, String spanId, String parentSpanId) {
 
         }
 
         @Override
-        public void atAfterInvoke(Class<?> clazz, String invokeInfo, Object target) {
+        public void atFrameworkExit(String info) {
 
         }
-
-        @Override
-        public void atInvokeException(Class<?> clazz, String invokeInfo, Object target, Throwable throwable) {
-
-        }
-
     }
 }
 

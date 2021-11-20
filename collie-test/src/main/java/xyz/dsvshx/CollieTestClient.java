@@ -1,6 +1,5 @@
 package xyz.dsvshx;
 
-import xyz.dsvshx.collie.javasist.CollieInterface;
 import xyz.dsvshx.ioc.SummerApplication;
 import xyz.dsvshx.ioc.annotation.Application;
 import xyz.dsvshx.ioc.annotation.mvc.WebApplication;
@@ -17,32 +16,28 @@ import xyz.dsvshx.ioc.context.ApplicationContext;
 @Application(basepackage = "xyz.dsvshx")
 public class CollieTestClient {
     public static void main(String[] args) throws Exception {
+        // System.out.println("====================123");
         ApplicationContext applicationContext = SummerApplication.run(CollieTestClient.class, args);
+        // System.out.println("====================456");
+        //
+        //
+        // CloseableHttpClient closeableHttpClient = HttpClients.createDefault();
+        // HttpGet httpGet = new HttpGet("http://localhost:8088/hello");
+        //
+        // CloseableHttpResponse response = closeableHttpClient.execute(httpGet);
+        // System.out.println(response);
+        // System.out.println("====================789");
+        System.out.println(new CollieTestClient().hello("dzh", 16));
 
-        CollieTestClient collieTestClient = new CollieTestClient();
-        System.out.println(collieTestClient.hello("dongzhonghua", 12));
-        // System.out.println(collieTestClient.age(20));
-        CollieInterface hi = new CollieInterface() {
-            @Override
-            public void hi() {
-                System.out.println("hello, interface");
-            }
-        };
-        hi.hi();
     }
 
     private String hello(String name, int age) throws Exception {
         Thread.sleep(1000);
-        return "hello" + name;
+        boolean b = age(age);
+        return "hello" + name + "，是否成年：" + b;
     }
 
     private boolean age(int age) {
-        try {
-            Thread.sleep(3000);
-            return age > 18;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return true;
+        return age > 18;
     }
 }

@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -ex
 if [ -n "$1" ]; then
-    mvn clean -U install
+    mvn install
 fi
 
 cp collie-agent/target/collie-agent-1.0-SNAPSHOT-jar-with-dependencies.jar ${HOME}/.collie/collie-agent.jar
